@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[158]:
-
-
 from glob import glob
 
 model_result_paths = glob("./data/judgements/*/*/*.json")
@@ -72,10 +66,21 @@ pd.DataFrame(eval_corr_results).corr().round(4)
 
 
 eval_res_df = pd.DataFrame(eval_corr_results)
-
 eval_res_df['ELYZA-tasks-100'] = eval_res_df['ELYZA-tasks-100'] * 2
 
+# データセットごとの重み
+weights = {
+    "Rakuda": 40,
+    "Tengu-Bench": 120,
+    "MT-Bench": 80,
+    "ELYZA-tasks-100": 100
+}
+
 eval_res_df['mean'] = eval_res_df.mean(axis=1)
+
+# 重み付けされたmean2を計算
+weighted_scores = [eval_res_df[dataset] * weight for dataset, weight in weights.items()]
+eval_res_df['weighted_mean'] = sum(weighted_scores) / 320
 
 eval_res_df = eval_res_df.sort_values(by='mean', ascending=False)
 
@@ -85,5 +90,6 @@ def highlight_max(s):
 
 styled_df = eval_res_df.style.apply(highlight_max, axis=0)
 styled_df = styled_df.format("{:.2f}")
-styled_df
-eval_res_df.to_csv("to_csv_out.csv")
+
+# xlsxで保存
+styled_df.to_excel("styled_df.xlsx", index=True)
