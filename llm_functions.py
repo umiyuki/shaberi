@@ -14,8 +14,11 @@ fp = 0.0
 
 os.environ["OPENAI_API_KEY"] = "NONE"
 
+def backoff_handler(details):
+    print(f"Backing off {details['wait']:0.1f} seconds after {details['tries']} tries. Error: {details['exception']}")
+
 # === 評価生成関数群 ===
-@backoff.on_exception(backoff.fibo, Exception, max_tries=1000)
+@backoff.on_exception(backoff.fibo, Exception, max_tries=1000, on_backoff=backoff_handler)
 def get_response_from_openai(messages: list, model_name: str) -> str:
     client = OpenAI(
         api_key=os.environ.get("OPENAI_API_KEY")
@@ -33,7 +36,7 @@ def get_response_from_openai(messages: list, model_name: str) -> str:
     return response.choices[0].message.content
 
 # === 評価生成関数群 ===
-@backoff.on_exception(backoff.fibo, Exception, max_tries=1000)
+@backoff.on_exception(backoff.fibo, Exception, max_tries=1000, on_backoff=backoff_handler)
 def get_response_from_litellm_gemini(messages: list, model_name: str) -> str:
     litellm.set_verbose=True
 
@@ -70,7 +73,6 @@ def get_response_from_litellm_gemini(messages: list, model_name: str) -> str:
         top_p=0.95,
         max_tokens=evaluation_max_tokens,
     )
-    print("answer:" + str(response.choices[0].message.content))
     return response.choices[0].message.content
 
 
