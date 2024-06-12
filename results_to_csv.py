@@ -31,4 +31,6 @@ model_names = all_result_df.model_name.unique()
 # 各model_nameごとにデータを分割し、エクセルファイルに書き出す
 for model_name in model_names:
     model_df = all_result_df[all_result_df.model_name == model_name]
-    model_df.to_excel(f"{model_name}_output.xlsx", index=False)
+    with open(f"{model_name}_output.csv", mode="w", encoding="cp932", errors="ignore", newline="") as f:
+    # pandasでファイルオブジェクトに書き込む
+        model_df.to_csv(f, index=False)

@@ -84,12 +84,7 @@ eval_res_df['weighted_mean'] = sum(weighted_scores) / 320
 
 eval_res_df = eval_res_df.sort_values(by='mean', ascending=False)
 
-def highlight_max(s):
-    is_max = s == s.max()
-    return ['background-color: yellow' if v else '' for v in is_max]
-
-styled_df = eval_res_df.style.apply(highlight_max, axis=0)
-styled_df = styled_df.format("{:.2f}")
-
-# xlsxで保存
-styled_df.to_excel("styled_df.xlsx", index=True)
+# csvで保存
+with open("totals.csv", mode="w", encoding="cp932", errors="ignore", newline="") as f:
+# pandasでファイルオブジェクトに書き込む
+    eval_res_df.to_csv(f, index=True)
