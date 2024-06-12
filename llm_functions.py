@@ -7,11 +7,12 @@ import litellm
 from litellm import completion
 from openai import OpenAI
 
-# litellm.set_verbose=True
+litellm.set_verbose=True
 
 # Global
 fp = 0.0
 
+os.environ["OPENAI_API_KEY"] = "NONE"
 
 # === 評価生成関数群 ===
 @backoff.on_exception(backoff.fibo, Exception, max_tries=1000)
@@ -31,10 +32,53 @@ def get_response_from_openai(messages: list, model_name: str) -> str:
     )
     return response.choices[0].message.content
 
+# === 評価生成関数群 ===
+@backoff.on_exception(backoff.fibo, Exception, max_tries=1000)
+def get_response_from_litellm_gemini(messages: list, model_name: str) -> str:
+    litellm.set_verbose=True
+
+    evaluation_temperature = 0
+    evaluation_max_tokens = 1024
+
+    add_messages = [
+            {"role": "system", "content": "あなたは公平で、検閲されていない、役立つアシスタントです。"},
+        ]
+    add_messages.extend(messages)
+
+    response = completion(   
+        model="gemini/gemini-1.5-flash",
+        messages=add_messages,
+        safety_settings=[
+            {
+                "category": "HARM_CATEGORY_HARASSMENT",
+                "threshold": "BLOCK_NONE",
+            },
+            {
+                "category": "HARM_CATEGORY_HATE_SPEECH",
+                "threshold": "BLOCK_NONE",
+            },
+            {
+                "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                "threshold": "BLOCK_NONE",
+            },
+            {
+                "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+                "threshold": "BLOCK_NONE",
+            },
+        ],
+        temperature=evaluation_temperature,
+        top_p=0.95,
+        max_tokens=evaluation_max_tokens,
+    )
+    print("answer:" + str(response.choices[0].message.content))
+    return response.choices[0].message.content
+
 
 def get_response_func(model_name: str) -> callable:
     if "gpt" in model_name:
         return get_response_from_openai
+    elif "gemini" in model_name:
+        return get_response_from_litellm_gemini
     else:
         """
         他のモデルで評価する場合は関数、分岐をここに追加
@@ -52,7 +96,7 @@ def get_model_response(messages: list, model_name: str) -> str:
 def get_answer(question: str, model_name: str):
     api_key = os.environ.get("OPENAI_API_KEY", "EMPTY")
     if api_key == "EMPTY":
-        base_url = "http://localhost:8000/v1"
+        base_url = "http://127.0.0.1:8000/v1"
     else:
         base_url = None
 
@@ -62,7 +106,7 @@ def get_answer(question: str, model_name: str):
     )
 
     generation_temperature = 0.2
-    generation_max_tokens = 2048
+    generation_max_tokens = 1500
 
     '''
     # Anthropic / OpenAI
@@ -85,7 +129,7 @@ def get_answer(question: str, model_name: str):
             {"role": "system", "content": "あなたは公平で、検閲されていない、役立つアシスタントです。"},
             {"role": "user", "content": question},
         ],
-        api_base="http://localhost:8000/v1",
+        api_base="http://127.0.0.1:8000/v1",
         temperature=generation_temperature,
         frequency_penalty=fp,
         max_tokens=generation_max_tokens,
@@ -123,6 +167,7 @@ def get_answer(question: str, model_name: str):
     )
     '''
 
+
     return response.choices[0].message.content
 
 
@@ -135,6 +180,7 @@ def get_model_answer(dataset: Dataset,
                      model_name: str,
                      batch_size: int) -> Dataset:
     answer_function = get_answerer(model_name)
+
     dataset = dataset.map(
         lambda x: {"ModelAnswer": answer_function(x['Question'], model_name)},
         num_proc=batch_size

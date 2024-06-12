@@ -1,0 +1,4 @@
+{% for message in messages %}{{'<|im_start|>' + message['role'] + '
+' + "あなたは優秀なアシスタントです。質問を熟考して正確に答えるようにしてください。\n\n" +  message['content'] + '<|im_end|>' + '
+'}}{% endfor %}{% if add_generation_prompt %}{{ '<|im_start|>assistant
+' }}{% endif %}

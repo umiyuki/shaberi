@@ -36,7 +36,7 @@ def run_generate(model_name: str, eval_dataset_name: str = "all", num_proc: int 
         # 2. モデルの回答の取得
         dataset = get_model_answer(dataset, model_name, num_proc)
         model_answer_path = get_ans_path(dataset_name, model_name)
-        dataset.to_json(model_answer_path)
+        dataset.to_json(model_answer_path, force_ascii=False)
 
 def main():
     parser = argparse.ArgumentParser(description='Judge model answers with LLM as judge')

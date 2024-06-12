@@ -20,7 +20,7 @@ def evaluate(model_name: str, eval_dataset_name: str, evaluation_model: str, num
 
     ans_dataset = ans_dataset.map(lambda x: {"score": eval_fn(x, evaluation_model)}, num_proc=num_proc)
     
-    ans_dataset.to_json(os.path.join(".", "data", "judgements", "judge_" + evaluation_model.replace("/", "__"), eval_dataset_name.replace("/", "__"), model_name.replace("/", "__") + ".json"))
+    ans_dataset.to_json(os.path.join(".", "data", "judgements", "judge_" + evaluation_model.replace("/", "__"), eval_dataset_name.replace("/", "__"), model_name.replace("/", "__") + ".json"), force_ascii=False)
 
     
 def run_judgement(model_name: str, eval_dataset_name: str = "all", evaluation_model: str = "gpt-4-turbo-preview", num_proc: int = 8):
