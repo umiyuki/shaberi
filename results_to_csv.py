@@ -3,6 +3,7 @@
 
 import pandas as pd
 from glob import glob
+import os
 
 model_result_paths = glob("./data/judgements/*/*/*.json")
 
@@ -28,9 +29,13 @@ all_result_df["dataset_category"] = all_result_df["eval_dataset"] + " " + all_re
 
 model_names = all_result_df.model_name.unique()
 
+if not os.path.exists("results"):
+    # ディレクトリが存在しない場合、ディレクトリを作成する
+    os.makedirs("results")
+
 # 各model_nameごとにデータを分割し、エクセルファイルに書き出す
 for model_name in model_names:
     model_df = all_result_df[all_result_df.model_name == model_name]
-    with open(f"{model_name}_output.csv", mode="w", encoding="cp932", errors="ignore", newline="") as f:
+    with open(f"results/{model_name}_output.csv", mode="w", encoding="cp932", errors="ignore", newline="") as f:
     # pandasでファイルオブジェクトに書き込む
         model_df.to_csv(f, index=False)

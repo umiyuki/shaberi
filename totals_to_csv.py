@@ -1,4 +1,5 @@
 from glob import glob
+import os
 
 model_result_paths = glob("./data/judgements/*/*/*.json")
 
@@ -84,7 +85,11 @@ eval_res_df['weighted_mean'] = sum(weighted_scores) / 320
 
 eval_res_df = eval_res_df.sort_values(by='mean', ascending=False)
 
+if not os.path.exists("results"):
+    # ディレクトリが存在しない場合、ディレクトリを作成する
+    os.makedirs("results")
+
 # csvで保存
-with open("totals.csv", mode="w", encoding="cp932", errors="ignore", newline="") as f:
+with open("results/totals.csv", mode="w", encoding="cp932", errors="ignore", newline="") as f:
 # pandasでファイルオブジェクトに書き込む
     eval_res_df.to_csv(f, index=True)
