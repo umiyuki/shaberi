@@ -73,7 +73,7 @@ eval_res_df['ELYZA-tasks-100'] = eval_res_df['ELYZA-tasks-100'] * 2
 weights = {
     "Rakuda": 40,
     "Tengu-Bench": 120,
-    "MT-Bench": 80,
+    "MT-Bench": 60,
     "ELYZA-tasks-100": 100
 }
 
