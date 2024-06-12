@@ -92,4 +92,4 @@ styled_df = eval_res_df.style.apply(highlight_max, axis=0)
 styled_df = styled_df.format("{:.2f}")
 
 # xlsxで保存
-styled_df.to_excel("styled_df.xlsx", index=True)
+styled_df.to_excel("totals.xlsx", index=True)
