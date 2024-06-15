@@ -16,6 +16,9 @@ os.environ["OPENAI_API_KEY"] = "NONE"
 
 def backoff_handler(details):
     print(f"Backing off {details['wait']:0.1f} seconds after {details['tries']} tries. Error: {details['exception']}")
+    # エラーメッセージに "No response received" が含まれている場合はリトライを中止(モデレーションによるブロックでのエラー)
+    if "No response received" in str(details['exception']):
+        raise backoff.Backoff.Stop
 
 # === 評価生成関数群 ===
 @backoff.on_exception(backoff.fibo, Exception, max_tries=1000, on_backoff=backoff_handler)
@@ -48,32 +51,39 @@ def get_response_from_litellm_gemini(messages: list, model_name: str) -> str:
         ]
     add_messages.extend(messages)
 
-    response = completion(   
-        model="gemini/gemini-1.5-flash",
-        messages=add_messages,
-        safety_settings=[
-            {
-                "category": "HARM_CATEGORY_HARASSMENT",
-                "threshold": "BLOCK_NONE",
-            },
-            {
-                "category": "HARM_CATEGORY_HATE_SPEECH",
-                "threshold": "BLOCK_NONE",
-            },
-            {
-                "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-                "threshold": "BLOCK_NONE",
-            },
-            {
-                "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
-                "threshold": "BLOCK_NONE",
-            },
-        ],
-        temperature=evaluation_temperature,
-        top_p=0.95,
-        max_tokens=evaluation_max_tokens,
-    )
-    return response.choices[0].message.content
+    try:
+        response = completion(
+            model="gemini/gemini-1.5-flash",
+            messages=add_messages,
+            safety_settings=[
+                {
+                    "category": "HARM_CATEGORY_HARASSMENT",
+                    "threshold": "BLOCK_NONE",
+                },
+                {
+                    "category": "HARM_CATEGORY_HATE_SPEECH",
+                    "threshold": "BLOCK_NONE",
+                },
+                {
+                    "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                    "threshold": "BLOCK_NONE",
+                },
+                {
+                    "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+                    "threshold": "BLOCK_NONE",
+                },
+            ],
+            temperature=evaluation_temperature,
+            top_p=0.95,
+            max_tokens=evaluation_max_tokens,
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        print(e)
+        if "No response received" in str(e):
+            return "No response received"
+        else:
+            raise e
 
 
 def get_response_func(model_name: str) -> callable:

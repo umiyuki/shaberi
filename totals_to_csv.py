@@ -9,7 +9,7 @@ model_result_paths = glob("./data/judgements/*/*/*.json")
 
 eval_dataset_dict = {
     "elyza__ELYZA-tasks-100": "ELYZA-tasks-100",
-    "yuzuai__rakuda-questions": "Rakuda",
+    # "yuzuai__rakuda-questions": "Rakuda",
     "lightblue__tengu_bench": "Tengu-Bench",
     "shisa-ai__ja-mt-bench-1shot": "MT-Bench",
 }
@@ -23,6 +23,8 @@ import pandas as pd
 all_result_dfs = []
 
 for model_result_path in model_result_paths:
+    if not model_result_path.split("/")[4] in eval_dataset_dict:
+        continue
     temp_df = pd.read_json(model_result_path, lines=True)
     temp_df["judge_model"] = model_result_path.split("/")[3]
     temp_df["eval_dataset"] = eval_dataset_dict[model_result_path.split("/")[4]]
@@ -71,7 +73,7 @@ eval_res_df['ELYZA-tasks-100'] = eval_res_df['ELYZA-tasks-100'] * 2
 
 # データセットごとの重み
 weights = {
-    "Rakuda": 40,
+    # "Rakuda": 40,
     "Tengu-Bench": 120,
     "MT-Bench": 60,
     "ELYZA-tasks-100": 100
@@ -81,9 +83,9 @@ eval_res_df['mean'] = eval_res_df.mean(axis=1)
 
 # 重み付けされたmean2を計算
 weighted_scores = [eval_res_df[dataset] * weight for dataset, weight in weights.items()]
-eval_res_df['weighted_mean'] = sum(weighted_scores) / 320
+eval_res_df['weighted_mean'] = sum(weighted_scores) / 280
 
-eval_res_df = eval_res_df.sort_values(by='mean', ascending=False)
+eval_res_df = eval_res_df.sort_values(by='weighted_mean', ascending=False)
 
 if not os.path.exists("results"):
     # ディレクトリが存在しない場合、ディレクトリを作成する

@@ -223,11 +223,11 @@ EVAL_MODEL_CONFIGS = {
         "evaluator_function": mt_evaluator,
         "split_name": "train"
     },
-    "yuzuai/rakuda-questions": {
-        "question_column": "text",
-        "evaluator_function": rakuda_evaluator,
-        "split_name": "train"
-    },
+    # "yuzuai/rakuda-questions": {
+    #     "question_column": "text",
+    #     "evaluator_function": rakuda_evaluator,
+    #     "split_name": "train"
+    # },
 }
 
 import os

@@ -1,0 +1,5 @@
+{% set sys_msg = "あなたは誠実で優秀な日本人のアシスタントです。" %}[INST] <<SYS>>
+{{ sys_msg }}
+<</SYS>>
+
+{% for message in messages %}{% if message['role'] == 'user' %}{{ message['content'].strip() }}{% endif %}{% endfor %}[/INST]
