@@ -60,7 +60,7 @@ for harm in harm_categories:
     eval_res_df[harm] = pd.Series(harm_results[harm])*2
 
 # 平均スコアを計算（モデルごとの全体平均）
-eval_res_df['mean'] = eval_res_df[eval_dataset_names].mean(axis=1)*2
+eval_res_df['mean'] = eval_res_df[eval_dataset_names].mean(axis=1)
 
 # スコアでソート
 eval_res_df = eval_res_df.sort_values(by='mean', ascending=False)
