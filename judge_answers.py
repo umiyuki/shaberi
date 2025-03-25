@@ -1,9 +1,34 @@
 import argparse
 import os
+import logging
 
 from datasets import load_dataset
 
 from evaluation_datasets_config import EVAL_MODEL_CONFIGS, get_ans_path
+
+# ロギングの設定を関数化
+def setup_logging(model_name: str):
+    logger = logging.getLogger()  # デフォルトのロガーを取得
+    logger.setLevel(logging.INFO)  # ログレベルを設定
+    
+    # 既存のハンドラをクリア（重複防止）
+    if logger.handlers:
+        logger.handlers.clear()
+    
+    # フォーマットの設定
+    formatter = logging.Formatter("%(asctime)s - %(message)s")
+    
+    # ファイルハンドラ（model_nameを含む）
+    file_handler = logging.FileHandler(f"judgement_log_{model_name.replace('/', '__')}.txt", encoding="utf-8")
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+    
+    # コンソールハンドラ
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(formatter)
+    logger.addHandler(console_handler)
+    
+    return logger
 
 
 def evaluate(model_name: str, eval_dataset_name: str, evaluation_model: str, num_proc: int):
@@ -26,8 +51,9 @@ def evaluate(model_name: str, eval_dataset_name: str, evaluation_model: str, num
 def run_judgement(model_name: str, eval_dataset_name: str = "all", evaluation_model: str = "gpt-4-turbo-preview", num_proc: int = 8):
     eval_dataset_names = EVAL_MODEL_CONFIGS.keys() if eval_dataset_name == "all" else [eval_dataset_name]
     
+    logger = logging.getLogger()  # 既存のロガーを取得
     for eval_dataset_name in eval_dataset_names:
-        print(f"Judging {model_name} on {eval_dataset_name} using {evaluation_model} ({num_proc} proc)")
+        logger.info(f"Judging {model_name} on {eval_dataset_name} using {evaluation_model} ({num_proc} proc)")
         evaluate(model_name, eval_dataset_name, evaluation_model, num_proc)
         
 def main():
@@ -39,6 +65,10 @@ def main():
     parser.add_argument('-n', '--num_proc', type=int, default=8)
 
     args = parser.parse_args()
+
+    # 引数が確定した後にロギングを設定
+    setup_logging(args.model_name)
+    
     run_judgement(args.model_name, args.eval_dataset_name, args.evaluation_model, args.num_proc)
     
 if __name__ == '__main__':

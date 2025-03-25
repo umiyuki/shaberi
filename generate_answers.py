@@ -26,9 +26,16 @@ def load_model_dataset(evaluation_dataset_name: str) -> Dataset:
         split_dataset = split_dataset.rename_column(q_col, "Question")
     return split_dataset
           
-def run_generate(model_name: str, eval_dataset_name: str = "all", num_proc: int = 16):
-    
-    eval_dataset_names = list(EVAL_MODEL_CONFIGS.keys()) if eval_dataset_name == "all" else [eval_dataset_name]
+def run_generate(model_name: str, eval_dataset_name: str = "all", num_proc: int = 1):
+    # "shaberi3"の場合、3つのデータセットを指定
+    if eval_dataset_name == "shaberi3":
+        eval_dataset_names = [
+            "lightblue/tengu_bench",
+            "elyza/ELYZA-tasks-100",
+            "shisa-ai/ja-mt-bench-1shot"
+        ]
+    else:
+        eval_dataset_names = list(EVAL_MODEL_CONFIGS.keys()) if eval_dataset_name == "all" else [eval_dataset_name]
     
     for dataset_name in eval_dataset_names:
         # 1. テストデータセットの読み込み
